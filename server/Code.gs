@@ -3,6 +3,7 @@
  *
  * 시트 열: 가입일시 | 학교 | 이름 | 전화번호 | 상태 | 마지막 접속 | 앱 버전 | 메모 | (비번 확인값)
  * 메모 칸에 "관리자" 라고 적은 사람은 앱에서 '주소로 로고 가져오기' 를 쓸 수 있어요.
+ * 명단 사진 읽기(글자 인식)를 쓰려면 편집기 왼쪽 '서비스 +' 에서 'Drive API' 를 추가해야 해요.
  * 상태 칸에 "승인" 이라고 바꾸면 그 사람이 앱을 쓸 수 있어요. "차단" 이면 막혀요.
  * 비밀번호를 잊은 사람은 맨 끝 칸(비번 확인값)을 지우면, 다음 로그인 때 새 비밀번호로 정해져요.
  *
@@ -75,6 +76,29 @@ function saveLogoFromUrl_(it) {
     return { name: name, ok: true, replaced: replaced };
   } catch (e) {
     return { name: name, ok: false, error: String(e).slice(0, 80) };
+  }
+}
+
+/** 명단 사진 → 글자 (구글 드라이브 글자 인식). 사진은 인식 후 바로 지움 */
+function ocr_(q) {
+  if (typeof Drive === 'undefined') return { ok: false, error: '서버에 Drive API 서비스가 켜져 있지 않아요 (관리자에게 문의)' };
+  var bytes = Utilities.base64Decode(String(q.data || ''));
+  if (!bytes.length) return { ok: false, error: '사진이 없어요' };
+  if (bytes.length > 4000000) return { ok: false, error: '사진이 너무 커요' };
+  var blob = Utilities.newBlob(bytes, String(q.mime || 'image/jpeg'), 'roster.jpg');
+  var id = '';
+  try {
+    if (Drive.Files.create) {      // Drive API v3
+      id = Drive.Files.create({ name: '명단사진_' + Date.now(), mimeType: 'application/vnd.google-apps.document' }, blob, { ocrLanguage: 'ko' }).id;
+    } else {                       // Drive API v2
+      id = Drive.Files.insert({ title: '명단사진_' + Date.now(), mimeType: 'application/vnd.google-apps.document' }, blob, { ocr: true, ocrLanguage: 'ko' }).id;
+    }
+    var text = DocumentApp.openById(id).getBody().getText();
+    return { ok: true, text: text };
+  } catch (e) {
+    return { ok: false, error: '글자 인식 실패: ' + String(e).slice(0, 80) };
+  } finally {
+    if (id) { try { DriveApp.getFileById(id).setTrashed(true); } catch (e2) { } }
   }
 }
 
@@ -159,6 +183,10 @@ function doPost(e) {
     if (!r[8]) sh.getRange(row, 9).setValue(q.pw);            // 비번 초기화된 경우 새 비밀번호로 정함
     else if (r[8] !== q.pw) return out_({ ok: false, error: '비밀번호가 맞지 않아요', code: 'badpw' });
     var isAdmin = String(r[7] || '').indexOf('관리자') >= 0 && r[4] === '승인';
+    if (q.action === 'ocr') {
+      if (r[4] !== '승인') return out_({ ok: false, error: '승인된 사용자만 쓸 수 있어요' });
+      return out_(ocr_(q));
+    }
     if (q.action === 'logoSave') {
       if (!isAdmin) return out_({ ok: false, error: '관리자만 로고를 저장할 수 있어요 (시트 메모 칸에 "관리자")' });
       return out_({ ok: true, results: (q.items || []).slice(0, 15).map(saveLogoFromUrl_) });
