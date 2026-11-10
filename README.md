@@ -1,5 +1,7 @@
 # baseball-scoreboard
 
+**앱 받기:** [BaseballScoreboard.apk](https://github.com/euisun0325-png/baseball-scoreboard/raw/main/BaseballScoreboard.apk) (늘 최신 버전)
+
 야구 스코어보드 안드로이드 앱 업데이트 배포용 저장소예요.
 
 - `version.json` : 최신 버전 정보 (앱이 켜질 때 이 파일을 확인)
