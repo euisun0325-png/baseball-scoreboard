@@ -4,6 +4,9 @@
  * 시트 열: 가입일시 | 학교 | 이름 | 전화번호 | 상태 | 마지막 접속 | 앱 버전 | 메모 | (비번 확인값)
  * 상태 칸에 "승인" 이라고 바꾸면 그 사람이 앱을 쓸 수 있어요. "차단" 이면 막혀요.
  * 비밀번호를 잊은 사람은 맨 끝 칸(비번 확인값)을 지우면, 다음 로그인 때 새 비밀번호로 정해져요.
+ *
+ * 시트는 처음 가입이 들어올 때 내 구글 드라이브에 "스코어보드 사용자" 라는 이름으로 저절로 만들어져요.
+ * (구글 시트의 확장 프로그램 → Apps Script 에 붙여 넣어도 그 시트를 그대로 써요)
  */
 
 var SHEET = '사용자';
@@ -11,8 +14,25 @@ var HEAD = ['가입일시', '학교', '이름', '전화번호', '상태', '마�
 var AUTO_APPROVE = false;   // true 로 바꾸면 가입하자마자 바로 승인
 var MAIL_ON_JOIN = true;    // 새 가입이 들어오면 메일로 알림
 
+function book_() {
+  var ss = null;
+  try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (e) { }
+  if (ss) return ss;
+  var props = PropertiesService.getScriptProperties(), id = props.getProperty('SHEET_ID');
+  if (id) { try { return SpreadsheetApp.openById(id); } catch (e) { } }
+  ss = SpreadsheetApp.create('스코어보드 사용자');
+  props.setProperty('SHEET_ID', ss.getId());
+  return ss;
+}
+
+/** 편집기에서 이 함수를 한 번 실행하면 시트가 만들어지고 주소가 실행 로그에 나와요 */
+function setup() {
+  var ss = book_(); sheet_();
+  Logger.log('사용자 시트: ' + ss.getUrl());
+}
+
 function sheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = book_();
   var sh = ss.getSheetByName(SHEET);
   if (!sh) {
     sh = ss.insertSheet(SHEET);
@@ -68,7 +88,7 @@ function doPost(e) {
         try {
           MailApp.sendEmail(Session.getEffectiveUser().getEmail(), '[스코어보드] 새 가입 요청: ' + school + ' ' + name,
             school + ' ' + name + ' (' + phone + ') 님이 가입했어요.\n\n시트에서 상태를 "승인"으로 바꾸면 앱을 쓸 수 있어요.\n' +
-            SpreadsheetApp.getActiveSpreadsheet().getUrl());
+            book_().getUrl());
         } catch (err) { }
       }
       return out_({ ok: true, status: st });
