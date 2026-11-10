@@ -13,6 +13,7 @@ var SHEET = '사용자';
 var HEAD = ['가입일시', '학교', '이름', '전화번호', '상태', '마지막 접속', '앱 버전', '메모', '비번 확인값'];
 var AUTO_APPROVE = false;   // true 로 바꾸면 가입하자마자 바로 승인
 var MAIL_ON_JOIN = true;    // 새 가입이 들어오면 메일로 알림
+var LOGO_FOLDER = '스코어보드 로고';   // 이 폴더에 "학교이름.png" 로 올리면 앱의 로고 찾기에 나와요
 
 function book_() {
   var ss = null;
@@ -25,10 +26,32 @@ function book_() {
   return ss;
 }
 
-/** 편집기에서 이 함수를 한 번 실행하면 시트가 만들어지고 주소가 실행 로그에 나와요 */
+/** 편집기에서 이 함수를 한 번 실행하면 시트와 로고 폴더가 만들어지고 주소가 실행 로그에 나와요 */
 function setup() {
   var ss = book_(); sheet_();
   Logger.log('사용자 시트: ' + ss.getUrl());
+  Logger.log('로고 폴더: ' + logoFolder_().getUrl());
+}
+
+function logoFolder_() {
+  var props = PropertiesService.getScriptProperties(), id = props.getProperty('LOGO_FOLDER_ID');
+  if (id) { try { var f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) { } }
+  var it = DriveApp.getFoldersByName(LOGO_FOLDER);
+  var folder = it.hasNext() ? it.next() : DriveApp.createFolder(LOGO_FOLDER);
+  props.setProperty('LOGO_FOLDER_ID', folder.getId());
+  return folder;
+}
+
+/** 로고 목록: [{name, id, t}]  (이름은 파일 이름에서 확장자를 뺀 것) */
+function logoList_() {
+  var out = [], files = logoFolder_().getFiles();
+  while (files.hasNext()) {
+    var f = files.next(), mt = f.getMimeType();
+    if (!/^image\//.test(mt)) continue;
+    out.push({ name: f.getName().replace(/\.[^.]+$/, ''), id: f.getId(), t: f.getLastUpdated().getTime() });
+  }
+  out.sort(function (a, b) { return a.name < b.name ? -1 : 1; });
+  return out;
 }
 
 function sheet_() {
@@ -99,6 +122,17 @@ function doPost(e) {
     var r = sh.getRange(row, 1, 1, 9).getValues()[0];
     if (!r[8]) sh.getRange(row, 9).setValue(q.pw);            // 비번 초기화된 경우 새 비밀번호로 정함
     else if (r[8] !== q.pw) return out_({ ok: false, error: '비밀번호가 맞지 않아요', code: 'badpw' });
+    if (q.action === 'logos' || q.action === 'logo') {
+      if (r[4] !== '승인') return out_({ ok: false, error: '승인된 사용자만 쓸 수 있어요' });
+      if (q.action === 'logos') return out_({ ok: true, logos: logoList_() });
+      var file = DriveApp.getFileById(String(q.id || ''));
+      var parents = file.getParents(), inFolder = false, fid = logoFolder_().getId();
+      while (parents.hasNext()) if (parents.next().getId() === fid) inFolder = true;
+      if (!inFolder) return out_({ ok: false, error: '로고 폴더의 파일이 아니에요' });
+      var blob = file.getBlob();
+      if (blob.getBytes().length > 1500000) return out_({ ok: false, error: '이미지가 너무 커요 (1.5MB 이하로 올려 주세요)' });
+      return out_({ ok: true, name: file.getName().replace(/\.[^.]+$/, ''), mime: blob.getContentType(), data: Utilities.base64Encode(blob.getBytes()) });
+    }
     sh.getRange(row, 6, 1, 2).setValues([[now_(), String(q.ver || r[6] || '')]]);
     return out_({ ok: true, status: r[4] || '대기', school: r[1], name: r[2] });
   } catch (err) {
