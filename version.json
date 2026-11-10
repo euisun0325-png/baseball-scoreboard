@@ -1,9 +1,9 @@
 {
-  "code": 89,
-  "name": "8.5",
+  "code": 90,
+  "name": "8.6",
   "date": "2026-11-11",
   "notes": [
-    "설정 화면도 입체 디자인: 볼록한 메뉴 칸, 광택 보석 아이콘, 누르면 눌리는 버튼"
+    "빛번짐 제거: 조작 화면과 설정 화면의 퍼지는 빛·흐린 그림자를 없애고 또렷한 입체로"
   ],
-  "apk": "BaseballScoreboard_v8.5.apk"
+  "apk": "BaseballScoreboard_v8.6.apk"
 }
