@@ -1,1 +1,1 @@
-{"code":139,"name":"13.3","date":"2026-11-13","notes":["🛠 이닝 교체 때 '회차 종료' 글자 가운데","투수·타자 이름이 길면 글자 줄여 다 보이게"],"apk":"BaseballScoreboard_v13.3.apk"}
+{"code": 140, "name": "13.4", "date": "2026-11-13", "notes": ["팀·경기명 설정 창에서 글자를 입력할 때 창이 위아래로 튀던 문제 수정"], "apk": "BaseballScoreboard_v13.4.apk"}
