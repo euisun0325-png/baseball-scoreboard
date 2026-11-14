@@ -79,8 +79,65 @@ function saveLogoFromUrl_(it) {
   }
 }
 
-/** 명단 사진 → 글자 (구글 드라이브 글자 인식). 사진은 인식 후 바로 지움 */
+/**
+ * 명단 사진 → 선수 목록 (구글 AI Gemini). 손글씨·표 모양이 제각각이어도 칸별로 정리해 줌.
+ * 준비: 앱스 스크립트 → 프로젝트 설정 → 스크립트 속성 → 이름 GEMINI_KEY, 값 = AI 스튜디오에서 받은 키
+ * 키가 없거나 실패하면 null → 아래 드라이브 글자 인식으로 넘어감
+ */
+function aiRoster_(bytes, mime) {
+  var key = String(PropertiesService.getScriptProperties().getProperty('GEMINI_KEY') || '').trim();
+  if (!key) return null;
+  var prompt = [
+    '이 사진은 한국 초등학교 야구팀의 선발 명단(라인업)이다. 손글씨일 수 있다.',
+    '표의 각 선수를 위에서 아래 순서로 읽어 JSON으로만 답하라.',
+    '- order: 타순 숫자(1~9, 후보·교체는 null)',
+    '- pos: 수비 위치. 숫자로 적혀 있으면 야구 수비 번호다: 1=P 2=C 3=1B 4=2B 5=3B 6=SS 7=LF 8=CF 9=RF. 한글(투수·포수·1루수·2루수·3루수·유격수·좌익수·중견수·우익수·지명타자)이면 P,C,1B,2B,3B,SS,LF,CF,RF,DH 로 바꿔라. 없으면 빈 문자열.',
+    '- no: 등번호(배번) 칸이 따로 있을 때만 그 숫자, 없으면 빈 문자열. 수비 번호를 등번호로 넣지 마라.',
+    '- name: 선수 이름(한글 2~4자). 손글씨는 흔한 한국 이름으로 가장 그럴듯하게 읽어라.',
+    '머리줄(타순·수비·이름 등), 대회명, 감독·코치, 빈 줄은 넣지 마라.'
+  ].join('\n');
+  var body = {
+    contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mime || 'image/jpeg', data: Utilities.base64Encode(bytes) } }] }],
+    generationConfig: { temperature: 0, responseMimeType: 'application/json',
+      responseSchema: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+        order: { type: 'INTEGER', nullable: true }, pos: { type: 'STRING' }, no: { type: 'STRING' }, name: { type: 'STRING' } }, required: ['name'] } } }
+  };
+  // 쓸 수 있는 모델을 키로 직접 조회 (모델 이름이 바뀌어도 동작). 실패하면 아래 이름들로
+  var models = [];
+  var pin = PropertiesService.getScriptProperties().getProperty('GEMINI_MODEL'); if (pin) models.push(pin);
+  try {
+    var lr = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key }, muteHttpExceptions: true });
+    if (lr.getResponseCode() === 200) {
+      var ms = (JSON.parse(lr.getContentText()).models || []).filter(function (m) {
+        return (m.supportedGenerationMethods || []).indexOf('generateContent') >= 0 && /gemini/.test(m.name) && !/(embed|tts|audio|image|live|thinking|exp|preview)/.test(m.name);
+      }).map(function (m) { return m.name.replace(/^models\//, ''); });
+      var fl = ms.filter(function (n) { return /flash/.test(n) && !/lite/.test(n); }).sort().reverse();
+      models = models.concat(fl.slice(0, 2), ms.filter(function (n) { return fl.indexOf(n) < 0; }).slice(0, 1));
+    }
+  } catch (eL) { }
+  models = models.concat(['gemini-2.5-flash', 'gemini-2.0-flash']).filter(function (m, i, a) { return m && a.indexOf(m) === i; }).slice(0, 4);
+  for (var i = 0; i < models.length; i++) {
+    try {
+      var r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + models[i] + ':generateContent', {
+        method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key }, payload: JSON.stringify(body), muteHttpExceptions: true });
+      if (r.getResponseCode() !== 200) continue;
+      var j = JSON.parse(r.getContentText());
+      var t = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts && j.candidates[0].content.parts[0].text;
+      var rows = JSON.parse(t || '[]');
+      if (!rows || !rows.length) continue;
+      rows = rows.filter(function (x) { return x && x.name && /[가-힣]/.test(x.name); }).slice(0, 30);
+      if (rows.length) return rows;
+    } catch (e) { }
+  }
+  return null;
+}
+
+/** 명단 사진 → 글자. 먼저 구글 AI(키가 있으면), 안 되면 구글 드라이브 글자 인식. 사진은 인식 후 바로 지움 */
 function ocr_(q) {
+  try {
+    var b0 = Utilities.base64Decode(String(q.data || ''));
+    if (b0.length && b0.length <= 4000000) { var ai = aiRoster_(b0, String(q.mime || 'image/jpeg')); if (ai) return { ok: true, rows: ai, via: 'ai' }; }
+  } catch (e0) { }
   if (typeof Drive === 'undefined') return { ok: false, error: '서버에 Drive API 서비스가 켜져 있지 않아요 (관리자에게 문의)' };
   var bytes = Utilities.base64Decode(String(q.data || ''));
   if (!bytes.length) return { ok: false, error: '사진이 없어요' };
