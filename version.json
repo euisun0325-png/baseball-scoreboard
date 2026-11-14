@@ -1,1 +1,1 @@
-{"code": 148, "name": "14.2", "date": "2026-11-14", "notes": ["명단 사진 읽기 개선: 손글씨는 구글 AI로 읽기 (서버에 GEMINI_KEY 필요)", "수비 칸 숫자(1~9)를 포지션으로 읽기 · 표 옆 숫자 무시 · 사진 흑백 보정"], "apk": "BaseballScoreboard_v14.2.apk"}
+{"code": 149, "name": "14.3", "date": "2026-11-14", "notes": ["타순·수비 명단 사진: 섞여 읽힌 숫자 정리, 타순 1~9 차례로 맞춤"], "apk": "BaseballScoreboard_v14.3.apk"}
