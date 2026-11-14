@@ -84,9 +84,11 @@ function saveLogoFromUrl_(it) {
  * 준비: 앱스 스크립트 → 프로젝트 설정 → 스크립트 속성 → 이름 GEMINI_KEY, 값 = AI 스튜디오에서 받은 키
  * 키가 없거나 실패하면 null → 아래 드라이브 글자 인식으로 넘어감
  */
-function aiRoster_(bytes, mime) {
+var AI_ERR = '';
+function aiRoster_(bytes, mime, names) {
+  AI_ERR = '';
   var key = String(PropertiesService.getScriptProperties().getProperty('GEMINI_KEY') || '').trim();
-  if (!key) return null;
+  if (!key) { AI_ERR = 'GEMINI_KEY 없음'; return null; }
   var prompt = [
     '이 사진은 한국 초등학교 야구팀의 선발 명단(라인업)이다. 손글씨일 수 있다.',
     '표의 각 선수를 위에서 아래 순서로 읽어 JSON으로만 답하라.',
@@ -95,49 +97,99 @@ function aiRoster_(bytes, mime) {
     '- no: 등번호(배번) 칸이 따로 있을 때만 그 숫자, 없으면 빈 문자열. 수비 번호를 등번호로 넣지 마라.',
     '- name: 선수 이름(한글 2~4자). 손글씨는 흔한 한국 이름으로 가장 그럴듯하게 읽어라.',
     '머리줄(타순·수비·이름 등), 대회명, 감독·코치, 빈 줄은 넣지 마라.'
-  ].join('\n');
+  ].concat(names && names.length ? ['참고: 이 팀에 등록된 선수 이름은 ' + names.join(', ') + ' 이다. 손글씨가 이 중 하나와 비슷하면 그 이름으로 적어라. 목록에 없는 이름도 있을 수 있다.'] : []).join('\n');
   var body = {
     contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mime || 'image/jpeg', data: Utilities.base64Encode(bytes) } }] }],
     generationConfig: { temperature: 0, responseMimeType: 'application/json',
       responseSchema: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
         order: { type: 'INTEGER', nullable: true }, pos: { type: 'STRING' }, no: { type: 'STRING' }, name: { type: 'STRING' } }, required: ['name'] } } }
   };
-  // 쓸 수 있는 모델을 키로 직접 조회 (모델 이름이 바뀌어도 동작). 실패하면 아래 이름들로
-  var models = [];
-  var pin = PropertiesService.getScriptProperties().getProperty('GEMINI_MODEL'); if (pin) models.push(pin);
+  var models = aiModels_(key), tried = {}, t0 = Date.now(), n = 0;
+  for (var i = 0; i < models.length; i++) {
+    var md = models[i]; if (tried[md]) continue; tried[md] = 1;
+    if (n >= 3 || Date.now() - t0 > 35000) { AI_ERR = (AI_ERR || '') + ' (시간이 걸려 예전 방식으로)'; break; }   // 앱이 오래 기다리지 않게
+    n++;
+    try {
+      var res = aiCall_(key, md, body);
+      if (res.code !== 200) {
+        AI_ERR = md + ' ' + res.code + ': ' + res.text.replace(/\s+/g, ' ').slice(0, 160);
+        var sug = res.text.match(/use (?:models\/)?(gemini-[\w.\-]+)/);        // "이 모델 대신 ○○를 쓰세요" 안내를 따라감
+        if (sug && !tried[sug[1]]) models.splice(i + 1, 0, sug[1]);
+        if (res.code === 400 && body.generationConfig.responseSchema) {       // 표 형식 지정을 못 받는 모델이면 형식 없이 다시
+          var b2 = JSON.parse(JSON.stringify(body)); delete b2.generationConfig.responseSchema;
+          res = aiCall_(key, md, b2); if (res.code !== 200) continue;
+        } else continue;
+      }
+      var rows = aiRows_(res.text);
+      if (!rows.length) { AI_ERR = md + ': 선수를 못 찾음'; continue; }
+      PropertiesService.getScriptProperties().setProperty('GEMINI_OK_MODEL', md);   // 잘 된 모델을 다음에 먼저 씀
+      return rows;
+    } catch (e) { AI_ERR = md + ': ' + String(e).slice(0, 160); }
+  }
+  return null;
+}
+
+/** 쓸 모델 순서: 직접 정한 모델 → 지난번에 잘 된 모델 → 최신 flash (gemini-flash-latest, 3.x flash…) → 예전 이름 */
+function aiModels_(key) {
+  var P = PropertiesService.getScriptProperties(), out = [];
+  [P.getProperty('GEMINI_MODEL'), P.getProperty('GEMINI_OK_MODEL')].forEach(function (m) { if (m) out.push(m); });
+  if (out.length && !aiModels_.full) return out.concat(['gemini-2.5-flash']).filter(function (m, i, a) { return a.indexOf(m) === i; });   // 잘 된 모델이 있으면 목록 조회 생략 (빠르게)
   try {
     var lr = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key }, muteHttpExceptions: true });
     if (lr.getResponseCode() === 200) {
       var ms = (JSON.parse(lr.getContentText()).models || []).filter(function (m) {
-        return (m.supportedGenerationMethods || []).indexOf('generateContent') >= 0 && /gemini/.test(m.name) && !/(embed|tts|audio|image|live|thinking|exp|preview)/.test(m.name);
+        return (m.supportedGenerationMethods || []).indexOf('generateContent') >= 0 && /gemini/.test(m.name) && /flash/.test(m.name) && !/(embed|tts|audio|image|live|thinking)/.test(m.name);
       }).map(function (m) { return m.name.replace(/^models\//, ''); });
-      var fl = ms.filter(function (n) { return /flash/.test(n) && !/lite/.test(n); }).sort().reverse();
-      models = models.concat(fl.slice(0, 2), ms.filter(function (n) { return fl.indexOf(n) < 0; }).slice(0, 1));
+      var ver = function (n) { var v = n.match(/gemini-(\d+(?:\.\d+)?)/); return v ? parseFloat(v[1]) : 0; };
+      // 번호가 붙은 최신 flash 먼저 (예: gemini-3.8-flash). '-latest' 별명은 응답이 멈추는 경우가 있어 맨 뒤로
+      var score = function (n) { return (/latest/.test(n) ? -1000 : 0) + ver(n) * 10 - (/lite/.test(n) ? 5 : 0) - (/preview|exp/.test(n) ? 1 : 0); };
+      out = out.concat(ms.sort(function (x, y) { return score(y) - score(x); }));
     }
-  } catch (eL) { }
-  models = models.concat(['gemini-2.5-flash', 'gemini-2.0-flash']).filter(function (m, i, a) { return m && a.indexOf(m) === i; }).slice(0, 4);
-  for (var i = 0; i < models.length; i++) {
-    try {
-      var r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + models[i] + ':generateContent', {
-        method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key }, payload: JSON.stringify(body), muteHttpExceptions: true });
-      if (r.getResponseCode() !== 200) continue;
-      var j = JSON.parse(r.getContentText());
-      var t = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts && j.candidates[0].content.parts[0].text;
-      var rows = JSON.parse(t || '[]');
-      if (!rows || !rows.length) continue;
-      rows = rows.filter(function (x) { return x && x.name && /[가-힣]/.test(x.name); }).slice(0, 30);
-      if (rows.length) return rows;
-    } catch (e) { }
+  } catch (eL) { AI_ERR = '모델 목록: ' + String(eL).slice(0, 160); }
+  return out.concat(['gemini-2.5-flash']).filter(function (m, i, a) { return m && a.indexOf(m) === i; });
+}
+function aiCall_(key, model, body) {
+  var r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
+    method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key }, payload: JSON.stringify(body), muteHttpExceptions: true });
+  return { code: r.getResponseCode(), text: String(r.getContentText()) };
+}
+/** AI 대답에서 선수 목록 꺼내기 (```json 감싸기 등도 처리) */
+function aiRows_(txt) {
+  var j = JSON.parse(txt), t = '';
+  ((j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts) || []).forEach(function (p) { if (p.text) t += p.text; });
+  var m = t.match(/\[[\s\S]*\]/); if (!m) return [];
+  var rows = JSON.parse(m[0]);
+  return (rows || []).filter(function (x) { return x && x.name && /[가-힣]/.test(x.name); }).slice(0, 30);
+}
+
+/**
+ * 편집기에서 위쪽 함수 고르는 칸을 aiTest 로 바꾸고 ▷실행 → 아래 '실행 로그'에 결과가 나와요.
+ * (처음 실행하면 외부 연결 권한을 허용하라고 나와요 → 허용)
+ */
+function aiTest() {
+  var key = String(PropertiesService.getScriptProperties().getProperty('GEMINI_KEY') || '').trim();
+  Logger.log('키: ' + (key ? key.slice(0, 6) + '… (' + key.length + '글자)' : '없음'));
+  if (!key) return;
+  aiModels_.full = true; var ms = aiModels_(key); aiModels_.full = false;
+  Logger.log('시도할 모델 순서: ' + ms.slice(0, 6).join(', '));
+  var body = { contents: [{ parts: [{ text: '다음을 JSON 배열로만 답하라: [{"order":1,"pos":"P","no":"","name":"김민준"}]' }] }] };
+  for (var i = 0; i < ms.length && i < 6; i++) {
+    var r = aiCall_(key, ms[i], body);
+    Logger.log(ms[i] + ' → ' + r.code + (r.code === 200 ? ' 성공! 읽은 선수: ' + JSON.stringify(aiRows_(r.text)) : ' ' + r.text.replace(/\s+/g, ' ').slice(0, 200)));
+    if (r.code === 200) { PropertiesService.getScriptProperties().setProperty('GEMINI_OK_MODEL', ms[i]); Logger.log('✅ 이 모델로 명단 사진을 읽어요: ' + ms[i]); return; }
+    var sug = r.text.match(/use (?:models\/)?(gemini-[\w.\-]+)/); if (sug && ms.indexOf(sug[1]) < 0) ms.splice(i + 1, 0, sug[1]);
   }
-  return null;
+  Logger.log('❌ 쓸 수 있는 모델을 찾지 못했어요');
 }
 
 /** 명단 사진 → 글자. 먼저 구글 AI(키가 있으면), 안 되면 구글 드라이브 글자 인식. 사진은 인식 후 바로 지움 */
 function ocr_(q) {
   try {
     var b0 = Utilities.base64Decode(String(q.data || ''));
-    if (b0.length && b0.length <= 4000000) { var ai = aiRoster_(b0, String(q.mime || 'image/jpeg')); if (ai) return { ok: true, rows: ai, via: 'ai' }; }
-  } catch (e0) { }
+    if (b0.length && b0.length <= 4000000) { var nm = (q.names || []).filter(function (x) { return /^[가-힣]{2,4}$/.test(String(x)); }).slice(0, 60);
+      var ai = aiRoster_(b0, String(q.mime || 'image/jpeg'), nm); if (ai) return { ok: true, rows: ai, via: 'ai' }; }
+  } catch (e0) { AI_ERR = String(e0).slice(0, 160); }
+  var aiErr = AI_ERR;
   if (typeof Drive === 'undefined') return { ok: false, error: '서버에 Drive API 서비스가 켜져 있지 않아요 (관리자에게 문의)' };
   var bytes = Utilities.base64Decode(String(q.data || ''));
   if (!bytes.length) return { ok: false, error: '사진이 없어요' };
@@ -151,7 +203,7 @@ function ocr_(q) {
       id = Drive.Files.insert({ title: '명단사진_' + Date.now(), mimeType: 'application/vnd.google-apps.document' }, blob, { ocr: true, ocrLanguage: 'ko' }).id;
     }
     var text = DocumentApp.openById(id).getBody().getText();
-    return { ok: true, text: text };
+    return { ok: true, text: text, aiErr: aiErr };
   } catch (e) {
     return { ok: false, error: '글자 인식 실패: ' + String(e).slice(0, 80) };
   } finally {
