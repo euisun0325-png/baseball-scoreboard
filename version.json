@@ -1,9 +1,9 @@
 {
- "code": 153,
- "name": "14.7",
+ "code": 154,
+ "name": "14.8",
  "date": "2026-11-15",
  "notes": [
-  "프로야구중계: 우측 하단 스코어보드 투구 수(P)가 실제로 올라가게 수정"
+  "프로야구중계: 이벤트 때 스코어보드 학교 로고 깜박임 해결"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v14.7.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v14.8.apk"
 }
