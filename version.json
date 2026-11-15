@@ -1,10 +1,12 @@
 {
- "code": 156,
- "name": "15.0",
- "date": "2026-11-15",
+ "code": 157,
+ "name": "15.1",
+ "date": "2026-11-16",
  "notes": [
-  "앱 복제 방지",
-  "\"팀 설정\"으로 정리, 경기명은 방송 화면 설정 → 경기명·채널로 이동"
+  "선수 교체·수비 자리 바꾸기·후보 등록을 쉬운 새 화면으로",
+  "사구(몸에 맞는 볼) 버튼",
+  "방금 한 동작 표시 + 되돌리기",
+  "'타자 교체' → '다음 타자'로 이름 변경"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.0.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.1.apk"
 }
