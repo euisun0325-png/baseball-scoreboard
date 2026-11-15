@@ -1,9 +1,10 @@
 {
- "code": 154,
- "name": "14.8",
+ "code": 155,
+ "name": "14.9",
  "date": "2026-11-15",
  "notes": [
-  "프로야구중계: 이벤트 때 스코어보드 학교 로고 깜박임 해결"
+  "프로야구중계: 스코어보드 베이스·볼카운트 크게, 공 줄 맞춤",
+  "백업 파일(.json) 불러오기 해결"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v14.8.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v14.9.apk"
 }
