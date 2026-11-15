@@ -1,10 +1,9 @@
 {
- "code": 152,
- "name": "14.6",
+ "code": 153,
+ "name": "14.7",
  "date": "2026-11-15",
  "notes": [
-  "프로야구중계 설정: 위 미리보기 고정, 아래 조절만 스크롤",
-  "조절 버튼 누를 때 화면 튐·자판 뜸 해결"
+  "프로야구중계: 우측 하단 스코어보드 투구 수(P)가 실제로 올라가게 수정"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v14.6.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v14.7.apk"
 }
