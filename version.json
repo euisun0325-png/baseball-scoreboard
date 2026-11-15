@@ -1,10 +1,10 @@
 {
- "code": 155,
- "name": "14.9",
+ "code": 156,
+ "name": "15.0",
  "date": "2026-11-15",
  "notes": [
-  "프로야구중계: 스코어보드 베이스·볼카운트 크게, 공 줄 맞춤",
-  "백업 파일(.json) 불러오기 해결"
+  "앱 복제 방지",
+  "\"팀 설정\"으로 정리, 경기명은 방송 화면 설정 → 경기명·채널로 이동"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v14.9.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.0.apk"
 }
