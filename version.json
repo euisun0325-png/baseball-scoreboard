@@ -1,11 +1,12 @@
 {
- "code": 162,
- "name": "15.6",
+ "code": 163,
+ "name": "15.7",
  "date": "2026-11-16",
  "notes": [
-  "방송 화면 설정·꾸미기를 전체 화면으로",
-  "위 미리보기 고정, 아래 설정만 스크롤",
-  "프로야구중계는 꾸미기 화면이 바로 열림"
+  "방송 화면 설정: 맨 위에서 테마 고르기",
+  "고른 테마의 칸을 미리보기에 모두 표시",
+  "화면을 눌러 바로 조절 (프로야구중계 포함)",
+  "예전 탭은 '모든 설정'에"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.6.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.7.apk"
 }
