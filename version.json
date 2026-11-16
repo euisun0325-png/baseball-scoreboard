@@ -1,10 +1,10 @@
 {
- "code": 169,
- "name": "16.3",
+ "code": 170,
+ "name": "16.4",
  "date": "2026-11-16",
  "notes": [
-  "구장 이름을 점수표 오른쪽 위 탭으로",
-  "설정 모드 오갈 때 화면 크기 튀던 문제 해결"
+  "설정 창 전체 화면 + ← 뒤로 버튼",
+  "창이 열려 있는 동안 뒤 화면 고정"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.3.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.4.apk"
 }
