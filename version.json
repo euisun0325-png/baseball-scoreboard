@@ -1,9 +1,10 @@
 {
- "code": 175,
- "name": "16.9",
+ "code": 176,
+ "name": "17.0",
  "date": "2026-11-17",
  "notes": [
-  "잠시 중단: 배경 없이 가운데 배너 + 야구공이 눈처럼 떨어짐 (프로야구중계)"
+  "결과 이미지·FINAL 화면에 made by woongpapa",
+  "창 버튼 줄 겹침 해결 (경기 종료·결과 이미지 등)"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.9.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.0.apk"
 }
