@@ -1,9 +1,11 @@
 {
- "code": 158,
- "name": "15.2",
+ "code": 159,
+ "name": "15.3",
  "date": "2026-11-16",
  "notes": [
-  "라인업 보내기: 우리 팀 / 양 팀 라인업 이미지로 카톡 공유·사진 저장"
+  "👥 선수 관리 하나로: 타순·대타 / 수비 자리 / 후보",
+  "누르고 → 누르기 한 가지 방식으로 교체·자리 바꾸기",
+  "교체도 되돌리기로 취소 가능"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.2.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.3.apk"
 }
