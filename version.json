@@ -1,10 +1,10 @@
 {
- "code": 168,
- "name": "16.2",
+ "code": 169,
+ "name": "16.3",
  "date": "2026-11-16",
  "notes": [
-  "프로야구중계 점수표·스코어에 팀 설정 학교명 그대로",
-  "두 학교명 같은 글씨 크기"
+  "구장 이름을 점수표 오른쪽 위 탭으로",
+  "설정 모드 오갈 때 화면 크기 튀던 문제 해결"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.2.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.3.apk"
 }
