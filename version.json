@@ -1,11 +1,12 @@
 {
- "code": 159,
- "name": "15.3",
+ "code": 160,
+ "name": "15.4",
  "date": "2026-11-16",
  "notes": [
-  "👥 선수 관리 하나로: 타순·대타 / 수비 자리 / 후보",
-  "누르고 → 누르기 한 가지 방식으로 교체·자리 바꾸기",
-  "교체도 되돌리기로 취소 가능"
+  "🎨 방송 화면 꾸미기(프로야구중계): 미리보기에서 칸을 눌러 고치기",
+  "⭐ 우리 학교 선택 · 초/말 공격 표시",
+  "타순 교체 알림은 타순표로",
+  "타자 카드 위치 조정 · 경기명 윗줄/아랫줄 크기 따로"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.3.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.4.apk"
 }
