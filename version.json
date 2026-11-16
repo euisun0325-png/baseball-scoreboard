@@ -1,10 +1,10 @@
 {
- "code": 170,
- "name": "16.4",
+ "code": 171,
+ "name": "16.5",
  "date": "2026-11-16",
  "notes": [
-  "설정 창 전체 화면 + ← 뒤로 버튼",
-  "창이 열려 있는 동안 뒤 화면 고정"
+  "선수 명단을 열면 아무것도 선택 안 된 상태로 시작",
+  "창 제목 중복 정리"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.4.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.5.apk"
 }
