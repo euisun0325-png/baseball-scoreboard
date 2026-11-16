@@ -1,10 +1,9 @@
 {
- "code": 171,
- "name": "16.5",
+ "code": 172,
+ "name": "16.6",
  "date": "2026-11-16",
  "notes": [
-  "선수 명단을 열면 아무것도 선택 안 된 상태로 시작",
-  "창 제목 중복 정리"
+  "경기 화면 점수표 학교명이 잘리지 않게 (길면 글씨 자동 축소)"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.5.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.6.apk"
 }
