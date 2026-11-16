@@ -1,11 +1,10 @@
 {
- "code": 165,
- "name": "15.9",
+ "code": 166,
+ "name": "16.0",
  "date": "2026-11-16",
  "notes": [
-  "⑤ 점수표·⑥ NEXT 따로 고르고 켜고 끄기",
-  "공수 교대 때 점수표·NEXT 자동 표시 기본 켜짐",
-  "④ 타자 누르면 ⑥이 잡히던 문제, 보이는 시간 칸 정리, 위치 버튼 겹침 해결"
+  "프로야구중계 ⑦ 알림 켜기·끄기 (홈런·삼진은 따로)",
+  "①②③ 고를 때 ⑦이 같이 잡히던 문제 해결"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.9.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.0.apk"
 }
