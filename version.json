@@ -1,12 +1,11 @@
 {
- "code": 163,
- "name": "15.7",
+ "code": 164,
+ "name": "15.8",
  "date": "2026-11-16",
  "notes": [
-  "방송 화면 설정: 맨 위에서 테마 고르기",
-  "고른 테마의 칸을 미리보기에 모두 표시",
-  "화면을 눌러 바로 조절 (프로야구중계 포함)",
-  "예전 탭은 '모든 설정'에"
+  "프로야구중계 스코어 회초말 칸에 경기 시간",
+  "보이는 시간을 직접 숫자로 입력 (홈런·삼진·타자 결과 시간도 새로)",
+  "⑤ 이닝 사이: 점수표+NEXT 합침, 자동 띄우기·시간"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.7.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.8.apk"
 }
