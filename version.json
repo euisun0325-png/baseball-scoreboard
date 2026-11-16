@@ -1,10 +1,10 @@
 {
- "code": 167,
- "name": "16.1",
+ "code": 168,
+ "name": "16.2",
  "date": "2026-11-16",
  "notes": [
-  "공수 교대 때 타순·수비 창 자동 표시 끔",
-  "⑨ 타순 칸에서 '공수 교대 때 자동으로 띄우기'로 다시 켤 수 있음"
+  "프로야구중계 점수표·스코어에 팀 설정 학교명 그대로",
+  "두 학교명 같은 글씨 크기"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.1.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.2.apk"
 }
