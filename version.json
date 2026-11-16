@@ -1,9 +1,9 @@
 {
- "code": 173,
- "name": "16.7",
+ "code": 174,
+ "name": "16.8",
  "date": "2026-11-16",
  "notes": [
-  "경기 마무리 결과 칸: 학교명 한 줄, 점수 정렬"
+  "선수 관리 창 전체 화면 + ← 뒤로"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.7.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.8.apk"
 }
