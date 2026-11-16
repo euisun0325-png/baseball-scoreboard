@@ -1,12 +1,10 @@
 {
- "code": 160,
- "name": "15.4",
+ "code": 161,
+ "name": "15.5",
  "date": "2026-11-16",
  "notes": [
-  "🎨 방송 화면 꾸미기(프로야구중계): 미리보기에서 칸을 눌러 고치기",
-  "⭐ 우리 학교 선택 · 초/말 공격 표시",
-  "타순 교체 알림은 타순표로",
-  "타자 카드 위치 조정 · 경기명 윗줄/아랫줄 크기 따로"
+  "🎨 꾸미기 2단계: 기본·TV 테마도 미리보기에서 칸을 눌러 고치기",
+  "점수판·로고·경기명·채널명·팝업 설정을 한 곳에"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.4.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v15.5.apk"
 }
