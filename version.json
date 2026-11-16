@@ -1,9 +1,9 @@
 {
- "code": 172,
- "name": "16.6",
+ "code": 173,
+ "name": "16.7",
  "date": "2026-11-16",
  "notes": [
-  "경기 화면 점수표 학교명이 잘리지 않게 (길면 글씨 자동 축소)"
+  "경기 마무리 결과 칸: 학교명 한 줄, 점수 정렬"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.6.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.7.apk"
 }
