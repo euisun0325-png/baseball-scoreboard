@@ -1,9 +1,9 @@
 {
- "code": 174,
- "name": "16.8",
- "date": "2026-11-16",
+ "code": 175,
+ "name": "16.9",
+ "date": "2026-11-17",
  "notes": [
-  "선수 관리 창 전체 화면 + ← 뒤로"
+  "잠시 중단: 배경 없이 가운데 배너 + 야구공이 눈처럼 떨어짐 (프로야구중계)"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.8.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v16.9.apk"
 }
