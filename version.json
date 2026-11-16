@@ -1,10 +1,11 @@
 {
- "code": 177,
- "name": "17.1",
+ "code": 178,
+ "name": "17.2",
  "date": "2026-11-17",
  "notes": [
-  "점수판 로고·학교명·점수 겹침 정리",
-  "선수 관리에서 자리 바꿀 때 화면이 튀지 않게"
+  "모든 테마 꾸미기를 프로야구중계 방식으로 (표시·크기·투명도·위치)",
+  "점수판·채널명 투명도",
+  "글자 입력 중 뒤로 누르면 키보드만 내림"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.1.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.2.apk"
 }
