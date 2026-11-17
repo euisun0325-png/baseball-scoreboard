@@ -1,9 +1,9 @@
 {
- "code": 180,
- "name": "17.4",
+ "code": 181,
+ "name": "17.5",
  "date": "2026-11-17",
  "notes": [
-  "프로야구중계 테마에 ⑪ 유튜브 채널명 (켜면 좌상단 대회명 밑)"
+  "기본·계절·낚시 테마: 점수판 위 경기명 글자 크기·투명도·위치 조정"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.4.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.5.apk"
 }
