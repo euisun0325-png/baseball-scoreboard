@@ -1,9 +1,9 @@
 {
- "code": 179,
- "name": "17.3",
+ "code": 180,
+ "name": "17.4",
  "date": "2026-11-17",
  "notes": [
-  "프로야구중계 꾸미기에서 ④ 타자 카드가 이닝 끝난 상태에도 미리보기에 보이게"
+  "프로야구중계 테마에 ⑪ 유튜브 채널명 (켜면 좌상단 대회명 밑)"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.3.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.4.apk"
 }
