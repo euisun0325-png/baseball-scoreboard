@@ -1,9 +1,10 @@
 {
- "code": 181,
- "name": "17.5",
+ "code": 182,
+ "name": "17.6",
  "date": "2026-11-17",
  "notes": [
-  "기본·계절·낚시 테마: 점수판 위 경기명 글자 크기·투명도·위치 조정"
+  "경기 기록 수정: 이닝 점수·H/B/E·선수·투수 기록 고치기",
+  "수정한 내용 하나씩 되돌리기"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.5.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.6.apk"
 }
