@@ -1,10 +1,10 @@
 {
- "code": 182,
- "name": "17.6",
+ "code": 183,
+ "name": "17.7",
  "date": "2026-11-17",
  "notes": [
-  "경기 기록 수정: 이닝 점수·H/B/E·선수·투수 기록 고치기",
-  "수정한 내용 하나씩 되돌리기"
+  "프로야구중계 스코어에 \"1회초\" 회차 표시 (시작 전부터)",
+  "삼진 장면 아래 점수 줄 뺌"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.6.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.7.apk"
 }
