@@ -1,11 +1,9 @@
 {
- "code": 178,
- "name": "17.2",
+ "code": 179,
+ "name": "17.3",
  "date": "2026-11-17",
  "notes": [
-  "모든 테마 꾸미기를 프로야구중계 방식으로 (표시·크기·투명도·위치)",
-  "점수판·채널명 투명도",
-  "글자 입력 중 뒤로 누르면 키보드만 내림"
+  "프로야구중계 꾸미기에서 ④ 타자 카드가 이닝 끝난 상태에도 미리보기에 보이게"
  ],
- "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.2.apk"
+ "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.3.apk"
 }
