@@ -16,6 +16,7 @@ var HEAD = ['가입일시', '학교', '이름', '전화번호', '상태', '마�
 var AUTO_APPROVE = false;   // true 로 바꾸면 가입하자마자 바로 승인
 var MAIL_ON_JOIN = true;    // 새 가입이 들어오면 메일로 알림
 var LOGO_FOLDER = '스코어보드 로고';   // 이 폴더에 "학교이름.png" 로 올리면 앱의 로고 찾기에 나와요
+var CFG_FOLDER = '스코어보드 설정 전달';  // 관리자가 '설정 보내기' 한 설정 파일이 여기에 (사람마다 1개)
 
 function book_() {
   var ss = null;
@@ -252,6 +253,133 @@ function find_(sh, phone) {
   return 0;
 }
 
+
+// ------------------------------------------------------------------ 설정 보내기 · 원격 지원 (v17.8)
+function cfgFolder_() {
+  var props = PropertiesService.getScriptProperties(), id = props.getProperty('CFG_FOLDER_ID');
+  if (id) { try { var f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) { } }
+  var it = DriveApp.getFoldersByName(CFG_FOLDER);
+  var folder = it.hasNext() ? it.next() : DriveApp.createFolder(CFG_FOLDER);
+  props.setProperty('CFG_FOLDER_ID', folder.getId());
+  return folder;
+}
+function pushMeta_(phone) { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('push_' + phone) || 'null'); } catch (e) { return null; } }
+function pushMetaSet_(phone, m) { var P = PropertiesService.getScriptProperties(); if (m) P.setProperty('push_' + phone, JSON.stringify(m)); else P.deleteProperty('push_' + phone); }
+
+// 캐시(빠른 임시 저장): 값 하나 100KB 한도라 잘게 나눠 저장
+var CCH = 25000, RS_TTL = 21600;
+function cPut_(k, s, ttl) {
+  var c = CacheService.getScriptCache(), n = Math.max(1, Math.ceil(s.length / CCH)), m = {};
+  m[k] = String(n);
+  for (var i = 0; i < n; i++) m[k + '#' + i] = s.substr(i * CCH, CCH);
+  c.putAll(m, ttl || RS_TTL);
+}
+function cGet_(k) {
+  var c = CacheService.getScriptCache(), n = +c.get(k) || 0;
+  if (!n) return null;
+  var keys = []; for (var i = 0; i < n; i++) keys.push(k + '#' + i);
+  var got = c.getAll(keys), s = '';
+  for (var j = 0; j < n; j++) { if (got[keys[j]] == null) return null; s += got[keys[j]]; }
+  return s;
+}
+function cJson_(k) { var s = cGet_(k); try { return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+function cDel_(k) { var c = CacheService.getScriptCache(), n = +c.get(k) || 0, keys = [k]; for (var i = 0; i < n; i++) keys.push(k + '#' + i); c.removeAll(keys); }
+
+/** 관리자 · 원격 지원 · 설정 전달 요청 처리. 해당 없으면 null */
+function support_(q, sh, row, r, phone, isAdmin) {
+  var ok = r[4] === '승인';
+  var a = q.action;
+  if (a === 'users') {
+    if (!isAdmin) return { ok: false, error: '관리자만 볼 수 있어요' };
+    var last = sh.getLastRow(), rows = last < 2 ? [] : sh.getRange(2, 1, last - 1, 8).getValues(), list = [];
+    rows.forEach(function (x) {
+      var p = phone_(x[3]); if (!p || p === phone || x[4] !== '승인') return;
+      var m = pushMeta_(p);
+      list.push({ phone: p, school: String(x[1]), name: String(x[2]), last: String(x[5] || ''), ver: String(x[6] || ''), push: m ? { at: m.at, st: m.st } : null });
+    });
+    return { ok: true, users: list };
+  }
+  if (a === 'cfgPush') {
+    if (!isAdmin) return { ok: false, error: '관리자만 보낼 수 있어요' };
+    var to = phone_(q.to), data = String(q.data || '');
+    if (!to || !find_(sh, to)) return { ok: false, error: '받는 사람을 찾지 못했어요' };
+    if (!data || data.length > 8000000) return { ok: false, error: '보낼 설정이 비었거나 너무 커요' };
+    var old = pushMeta_(to);
+    if (old && old.fid) { try { DriveApp.getFileById(old.fid).setTrashed(true); } catch (e) { } }
+    var f = cfgFolder_().createFile('설정_' + to + '.json', data, 'application/json');
+    var meta = { fid: f.getId(), at: now_(), t: Date.now(), from: String(r[2] || '관리자'), memo: String(q.memo || '').slice(0, 80), cats: (q.cats || []).slice(0, 8), st: '대기' };
+    pushMetaSet_(to, meta);
+    return { ok: true, at: meta.at };
+  }
+  if (a === 'cfgGet') {
+    var m2 = pushMeta_(phone);
+    if (!m2) return { ok: false, error: '받을 설정이 없어요' };
+    var txt = ''; try { txt = DriveApp.getFileById(m2.fid).getBlob().getDataAsString('UTF-8'); } catch (e) { return { ok: false, error: '설정 파일을 읽지 못했어요' }; }
+    return { ok: true, meta: { at: m2.at, t: m2.t, from: m2.from, memo: m2.memo, cats: m2.cats }, data: txt };
+  }
+  if (a === 'cfgAck') {
+    var m3 = pushMeta_(phone);
+    if (m3 && (!q.t || +q.t === +m3.t)) { m3.st = q.res === 'later' ? '대기' : '적용'; m3.done = now_(); pushMetaSet_(phone, m3); }
+    return { ok: true };
+  }
+  if (a === 'rsOpen') {
+    if (!ok) return { ok: false, error: '승인된 사용자만 쓸 수 있어요' };
+    var c = CacheService.getScriptCache(), code = '';
+    for (var k = 0; k < 20 && !code; k++) { var t = String(100000 + Math.floor(Math.random() * 900000)); if (!c.get('rc:' + t)) code = t; }
+    var oldS = cJson_('rs:' + phone); if (oldS && oldS.code) c.remove('rc:' + oldS.code);
+    c.put('rc:' + code, phone, 600);
+    cPut_('rs:' + phone, JSON.stringify({ code: code, st: 'wait', exp: Date.now() + 600000, who: String(r[2] || ''), school: String(r[1] || '') }));
+    cPut_('rsnap:' + phone, String(q.snap || '{}'));
+    cPut_('rgame:' + phone, String(q.game || '{}'));
+    cDel_('rpat:' + phone);
+    return { ok: true, code: code, exp: 600 };
+  }
+  if (a === 'rsJoin') {
+    if (!isAdmin) return { ok: false, error: '관리자만 연결할 수 있어요' };
+    var code2 = String(q.code || '').replace(/[^0-9]/g, '');
+    var tp = CacheService.getScriptCache().get('rc:' + code2);
+    if (!tp) return { ok: false, error: '코드가 맞지 않거나 시간이 지났어요' };
+    var s2 = cJson_('rs:' + tp);
+    if (!s2 || s2.st === 'end') return { ok: false, error: '상대방이 지원 요청을 끝냈어요' };
+    s2.st = 'on'; s2.admin = phone; s2.adminName = String(r[2] || '관리자'); s2.seen = Date.now();
+    cPut_('rs:' + tp, JSON.stringify(s2));
+    CacheService.getScriptCache().remove('rc:' + code2);
+    return { ok: true, to: tp, who: s2.who, school: s2.school, snap: cGet_('rsnap:' + tp) || '{}', game: cGet_('rgame:' + tp) || '{}' };
+  }
+  if (a === 'rsAdm') {      // 관리자: 바뀐 설정 보내기 + 상대 경기 상황 받기 (주기적으로)
+    var to2 = phone_(q.to), s3 = cJson_('rs:' + to2);
+    if (!isAdmin || !s3 || s3.admin !== phone) return { ok: false, error: '연결된 지원이 없어요', code: 'nosess' };
+    if (s3.st === 'end') return { ok: true, st: 'end' };
+    var pat = cJson_('rpat:' + to2) || { seq: 0, ls: {}, stf: null };
+    var ls = q.ls || {}, any = false;
+    Object.keys(ls).forEach(function (key) { pat.seq++; pat.ls[key] = { s: pat.seq, v: ls[key] }; any = true; });
+    if (q.stf) { pat.seq++; pat.stf = { s: pat.seq, v: q.stf }; any = true; }
+    if (any) cPut_('rpat:' + to2, JSON.stringify(pat));
+    s3.seen = Date.now(); cPut_('rs:' + to2, JSON.stringify(s3));
+    return { ok: true, st: s3.st, seq: pat.seq, got: s3.got || 0, meAgo: s3.lastMe ? Date.now() - s3.lastMe : 0, game: cGet_('rgame:' + to2) || '{}' };
+  }
+  if (a === 'rsMe') {       // 지원 받는 사람: 경기 상황 올리기 + 관리자가 바꾼 설정 받기 (주기적으로)
+    var s4 = cJson_('rs:' + phone);
+    if (!s4) return { ok: true, st: 'end' };
+    if (s4.st === 'wait' && Date.now() > s4.exp) return { ok: true, st: 'expired' };
+    if (q.game) cPut_('rgame:' + phone, String(q.game));
+    var pat2 = cJson_('rpat:' + phone) || { seq: 0, ls: {}, stf: null }, since = +q.since || 0, outLs = {};
+    Object.keys(pat2.ls).forEach(function (key) { if (pat2.ls[key].s > since) outLs[key] = pat2.ls[key].v; });
+    if (since > (s4.got || 0)) s4.got = since;
+    s4.lastMe = Date.now(); cPut_('rs:' + phone, JSON.stringify(s4));
+    return { ok: true, st: s4.st, admin: s4.adminName || '', seq: pat2.seq, ls: outLs, stf: pat2.stf && pat2.stf.s > since ? pat2.stf.v : null };
+  }
+  if (a === 'rsEnd') {
+    var tgt = q.to ? phone_(q.to) : phone, s5 = cJson_('rs:' + tgt);
+    if (s5 && (tgt === phone || s5.admin === phone)) {
+      s5.st = 'end'; cPut_('rs:' + tgt, JSON.stringify(s5), 600);
+      if (s5.code) CacheService.getScriptCache().remove('rc:' + s5.code);
+    }
+    return { ok: true, st: 'end' };
+  }
+  return null;
+}
+
 function doGet() { return out_({ ok: true, app: 'baseball-scoreboard-auth' }); }
 
 function doPost(e) {
@@ -312,8 +440,12 @@ function doPost(e) {
       if (blob.getBytes().length > 1500000) return out_({ ok: false, error: '이미지가 너무 커요 (1.5MB 이하로 올려 주세요)' });
       return out_({ ok: true, name: file.getName().replace(/\.[^.]+$/, ''), mime: blob.getContentType(), data: Utilities.base64Encode(blob.getBytes()) });
     }
+    var sup = support_(q, sh, row, r, phone, isAdmin);
+    if (sup) return out_(sup);
     sh.getRange(row, 6, 1, 2).setValues([[now_(), String(q.ver || r[6] || '')]]);
-    return out_({ ok: true, status: r[4] || '대기', school: r[1], name: r[2], admin: isAdmin });
+    var pm = r[4] === '승인' ? pushMeta_(phone) : null;
+    return out_({ ok: true, status: r[4] || '대기', school: r[1], name: r[2], admin: isAdmin,
+      push: pm && pm.st === '대기' ? { at: pm.at, t: pm.t, from: pm.from, memo: pm.memo, cats: pm.cats } : null });
   } catch (err) {
     return out_({ ok: false, error: '서버 오류: ' + err });
   } finally {
