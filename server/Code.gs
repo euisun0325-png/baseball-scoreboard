@@ -12,7 +12,7 @@
  */
 
 var SHEET = '사용자';
-var HEAD = ['가입일시', '학교', '이름', '전화번호', '상태', '마지막 접속', '앱 버전', '메모', '비번 확인값'];
+var HEAD = ['가입일시', '학교', '이름', '전화번호', '상태', '마지막 접속', '앱 버전', '메모', '비번 확인값', '지메일'];   // 지메일: 플레이스토어 테스터 등록용 (v17.9)
 var AUTO_APPROVE = false;   // true 로 바꾸면 가입하자마자 바로 승인
 var MAIL_ON_JOIN = true;    // 새 가입이 들어오면 메일로 알림
 var LOGO_FOLDER = '스코어보드 로고';   // 이 폴더에 "학교이름.png" 로 올리면 앱의 로고 찾기에 나와요
@@ -238,9 +238,15 @@ function sheet_() {
     var rule = SpreadsheetApp.newDataValidation().requireValueInList(['대기', '승인', '차단'], true).build();
     sh.getRange('E2:E').setDataValidation(rule);
   }
+  var P = PropertiesService.getScriptProperties();
+  if (!P.getProperty('GMAIL_COL')) {           // 예전에 만든 시트엔 '지메일' 칸 제목 추가 (한 번만)
+    if (!sh.getRange(1, 10).getValue()) sh.getRange(1, 10).setValue('지메일').setFontWeight('bold').setBackground('#e8f0fe');
+    P.setProperty('GMAIL_COL', '1');
+  }
   return sh;
 }
 
+function gmail_(g) { g = String(g || '').trim().toLowerCase(); return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(g) ? g.slice(0, 80) : ''; }
 function phone_(p) { return String(p || '').replace(/[^0-9]/g, ''); }
 function now_() { return Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyy-MM-dd HH:mm'); }
 function out_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
@@ -291,13 +297,19 @@ function support_(q, sh, row, r, phone, isAdmin) {
   var a = q.action;
   if (a === 'users') {
     if (!isAdmin) return { ok: false, error: '관리자만 볼 수 있어요' };
-    var last = sh.getLastRow(), rows = last < 2 ? [] : sh.getRange(2, 1, last - 1, 8).getValues(), list = [];
+    var last = sh.getLastRow(), rows = last < 2 ? [] : sh.getRange(2, 1, last - 1, 10).getValues(), list = [];
     rows.forEach(function (x) {
       var p = phone_(x[3]); if (!p || p === phone || x[4] !== '승인') return;
       var m = pushMeta_(p);
-      list.push({ phone: p, school: String(x[1]), name: String(x[2]), last: String(x[5] || ''), ver: String(x[6] || ''), push: m ? { at: m.at, st: m.st } : null });
+      list.push({ phone: p, school: String(x[1]), name: String(x[2]), last: String(x[5] || ''), ver: String(x[6] || ''), gmail: String(x[9] || ''), push: m ? { at: m.at, st: m.st } : null });
     });
-    return { ok: true, users: list };
+    return { ok: true, users: list, me: String(r[9] || '') };
+  }
+  if (a === 'setGmail') {
+    var g = gmail_(q.gmail);
+    if (!g) return { ok: false, error: '이메일 주소를 정확히 넣어 주세요' };
+    sh.getRange(row, 10).setValue(g);
+    return { ok: true, gmail: g };
   }
   if (a === 'cfgPush') {
     if (!isAdmin) return { ok: false, error: '관리자만 보낼 수 있어요' };
@@ -401,14 +413,15 @@ function doPost(e) {
         if (cur[8] && cur[8] !== q.pw) return out_({ ok: false, error: '이미 가입된 전화번호예요. 로그인해 주세요' });
         sh.getRange(row, 2, 1, 2).setValues([[school, name]]);
         sh.getRange(row, 9).setValue(q.pw);
+        if (gmail_(q.gmail)) sh.getRange(row, 10).setValue(gmail_(q.gmail));
         return out_({ ok: true, status: cur[4] || '대기' });
       }
       var st = AUTO_APPROVE ? '승인' : '대기';
-      sh.appendRow([now_(), school, name, "'" + phone, st, now_(), String(q.ver || ''), '', q.pw]);
+      sh.appendRow([now_(), school, name, "'" + phone, st, now_(), String(q.ver || ''), '', q.pw, gmail_(q.gmail)]);
       if (MAIL_ON_JOIN) {
         try {
           MailApp.sendEmail(Session.getEffectiveUser().getEmail(), '[스코어보드] 새 가입 요청: ' + school + ' ' + name,
-            school + ' ' + name + ' (' + phone + ') 님이 가입했어요.\n\n시트에서 상태를 "승인"으로 바꾸면 앱을 쓸 수 있어요.\n' +
+            school + ' ' + name + ' (' + phone + (gmail_(q.gmail) ? ', ' + gmail_(q.gmail) : '') + ') 님이 가입했어요.\n\n시트에서 상태를 "승인"으로 바꾸면 앱을 쓸 수 있어요.\n' +
             book_().getUrl());
         } catch (err) { }
       }
@@ -417,7 +430,7 @@ function doPost(e) {
 
     // login / status
     if (!row) return out_({ ok: false, error: '가입되지 않은 전화번호예요', code: 'nouser' });
-    var r = sh.getRange(row, 1, 1, 9).getValues()[0];
+    var r = sh.getRange(row, 1, 1, 10).getValues()[0];
     if (!r[8]) sh.getRange(row, 9).setValue(q.pw);            // 비번 초기화된 경우 새 비밀번호로 정함
     else if (r[8] !== q.pw) return out_({ ok: false, error: '비밀번호가 맞지 않아요', code: 'badpw' });
     var isAdmin = String(r[7] || '').indexOf('관리자') >= 0 && r[4] === '승인';
@@ -444,7 +457,7 @@ function doPost(e) {
     if (sup) return out_(sup);
     sh.getRange(row, 6, 1, 2).setValues([[now_(), String(q.ver || r[6] || '')]]);
     var pm = r[4] === '승인' ? pushMeta_(phone) : null;
-    return out_({ ok: true, status: r[4] || '대기', school: r[1], name: r[2], admin: isAdmin,
+    return out_({ ok: true, status: r[4] || '대기', school: r[1], name: r[2], admin: isAdmin, gmail: String(r[9] || ''),
       push: pm && pm.st === '대기' ? { at: pm.at, t: pm.t, from: pm.from, memo: pm.memo, cats: pm.cats } : null });
   } catch (err) {
     return out_({ ok: false, error: '서버 오류: ' + err });

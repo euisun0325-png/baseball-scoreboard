@@ -1,7 +1,7 @@
 {
-  "code": 184,
-  "name": "17.8",
+  "code": 185,
+  "name": "17.9",
   "date": "2026-11-22",
-  "notes": "관리자 원격 설정: 설정 보내기 · 6자리 번호로 원격 지원",
-  "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.8.apk"
+  "notes": "가입 Gmail 입력(테스터 모집) · 프로야구중계 왼쪽/오른쪽 로고 조정 탭",
+  "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.9.apk"
 }
