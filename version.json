@@ -1,7 +1,7 @@
 {
-  "code": 185,
-  "name": "17.9",
+  "code": 186,
+  "name": "18.0",
   "date": "2026-11-22",
-  "notes": "가입 Gmail 입력(테스터 모집) · 프로야구중계 왼쪽/오른쪽 로고 조정 탭",
-  "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v17.9.apk"
+  "notes": "프로야구중계 학교 로고 크게 (스코어·타자·점수표)",
+  "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v18.0.apk"
 }
