@@ -1,7 +1,7 @@
 {
-  "code": 186,
-  "name": "18.0",
-  "date": "2026-11-22",
-  "notes": "프로야구중계 학교 로고 크게 (스코어·타자·점수표)",
-  "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v18.0.apk"
+  "code": 187,
+  "name": "18.1",
+  "date": "2026-11-26",
+  "notes": "방송 화면 예시 선수 이름을 가명으로",
+  "apk": "https://raw.githubusercontent.com/euisun0325-png/baseball-scoreboard/main/BaseballScoreboard_v18.1.apk"
 }
